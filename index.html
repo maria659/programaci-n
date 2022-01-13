@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body class="container">
+    <br/>
+    <h1 class="text-center">Registro de usuarios</h1>
+    <br/>
+    <hr/>
+    <!--Formulario de Registro de Usuario-->
+    <form onsubmit="return false;">
+        <fieldset>
+            <legend id="legend">Nuevo Usuario</legend>
+            <input type="hidden" name="id" id="id" value=""/>
+            <label for="name" class="form-label">Nombre*: </label>
+            <input type="text" id="name" name="name" class="form-control"/>        
+            <label for="gender" class="form-label">Sexo*: </label>
+            <select id="gender" name="gender" class="form-control">
+                <option>- Seleccione -</option>
+                <option value="Hombre">Hombre</option>
+                <option value="Mujer">Mujer</option>
+            </select>            
+            <label for="age" class="form-label">Edad*: </label>
+            <input type="text" id="age" name="age" class="form-control"/> 
+            <br/>       
+            <div class="d-grid gap-2">
+                <button type="submit" id="btnAdd" class="btn btn-primary">Guardar</button>
+            </div>
+        </fieldset>
+    </form>
+    <hr/>
+    <!--Tabla de listado de usuarios-->
+    <table id="table" class="table">
+        <thead>
+            <th>Nombre</th>
+            <th>Sexo</th>
+            <th>Edad</th>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <!--Funciones Javascript-->
+    <script>
+        window.onload = function () {
+            //Inicialización de variables
+
+            var localStorageKeyName = 'data'; //Nombre de la variable en el localstorage
+
+            var users = []; //Arreglo donde se almacenan los usuario
+
+            //Entradas del formulario
+            var id   = document.getElementById("id"),
+                name   = document.getElementById("name"),
+                gender = document.getElementById("gender"),
+                age    = document.getElementById("age");
+
+
+            loadFromLocalStorage();//Se carga los datos del localstorage se almacenan en el arreglo users y se lista en la tabla
+
+            document.querySelector("#btnAdd").addEventListener('click', function () {
+                // Validar
+                if (name.value.length === 0 || gender.value.length === 0 || !parseInt(age.value)){
+                    alert('Por favor capture todos los datos.')
+                    return;
+                } 
+
+                var user = {   
+                    id: id.value,                 
+                    name: name.value,
+                    gender: gender.value,
+                    age: age.value
+                };
+
+                // Limpiar el formulario
+                id.value = '';
+                name.value = '';
+                gender.value = '';
+                age.value = '';
+
+                // Guardar objeto en el LocalStorage
+                appendObjectToLocalStorage(user);
+            })
+
+            function appendObjectToLocalStorage(obj) {
+                var dataInLocalStorage = localStorage.getItem(localStorageKeyName);
+
+                if (obj.id) {
+                    users[obj.id] = obj;
+                    delete obj.id;
+                }else{
+                    users.push(obj);
+                }
+                
+                localStorage.setItem(localStorageKeyName, JSON.stringify(users));
+
+                loadFromLocalStorage();
+            }
+
+            //Funcion que carga la lista de usuarios en el arregle user y redibuja la tabla
+            function loadFromLocalStorage() {
+                    dataInLocalStorage = localStorage.getItem(localStorageKeyName),
+                    gridBody = document.querySelector("#table tbody");
+
+                if (dataInLocalStorage !== null) {
+                    users = JSON.parse(dataInLocalStorage);
+                }
+
+                gridBody.innerHTML = ''; //Siempre se elimina el contenido del cuerpo de la tabla antes de volver a listar
+
+                users.forEach(function (x, i) {
+                    var tr = document.createElement("tr"),
+                        tdName = document.createElement("td"),
+                        tdGender = document.createElement("td"),
+                        tdAge = document.createElement("td"),
+                        tdEdit = document.createElement("td"),
+                        btnEdit = document.createElement("button");                        
+                        tdRemove = document.createElement("td"),
+                        btnRemove = document.createElement("button");
+
+                    tdName.innerHTML = x.name;
+                    tdGender.innerHTML = x.gender;
+                    tdAge.innerHTML = x.age;
+
+                    btnEdit.textContent = 'Editar';                    
+                    btnEdit.addEventListener('click', function(){
+                        edit(i);
+                    });
+                    tdEdit.appendChild(btnEdit);
+
+                    btnRemove.textContent = 'Eliminar';                    
+                    btnRemove.addEventListener('click', function(){
+                        removeFromLocalStorage(i);
+                    });
+                    tdRemove.appendChild(btnRemove);
+
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdGender);
+                    tr.appendChild(tdAge);
+                    tr.appendChild(tdEdit);
+                    tr.appendChild(tdRemove);
+
+                    gridBody.appendChild(tr);
+                });
+            }
+
+            //Función que recibe un indice y se carga loa valores del usuario con el indice indicado en el formulario para editar
+            function edit(index){                                
+                    id.value = index;
+                    name.value = users[index].name;
+                    gender.value = users[index].gender;
+                    age.value = users[index].age;
+            }
+
+            //Función que recibe un indice del usuario en el arreglo que se de sea eliminar            
+            function removeFromLocalStorage(index){
+                users.splice(index, 1);
+
+                localStorage.setItem(localStorageKeyName, JSON.stringify(users));
+
+                loadFromLocalStorage();
+            }
+        }
+    </script>
+</body>
+</html>
